@@ -1,11 +1,12 @@
 ﻿using DAL.Common;
 using DAL.Entities;
+using DAL.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 
 namespace DAL.Repository
 {
-    public abstract class BaseRepository<T> : BaseReadonlyRepository<T> where T : BaseEntity
+    public abstract class BaseRepository<T> : BaseReadonlyRepository<T>, IBaseRepository<T> where T : BaseEntity
     {
         protected BaseRepository(AppDbContext context) : base (context)
         {

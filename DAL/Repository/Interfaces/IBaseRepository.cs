@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DAL.Repository.Interfaces
 {
-    public interface IBaseRepository<T> where T : BaseEntity
+    public interface IBaseRepository<T> : IBaseReadonlyRepository<T> where T : BaseEntity
     {
         void Add(T item);
         void AddRange(IEnumerable<T> items);
