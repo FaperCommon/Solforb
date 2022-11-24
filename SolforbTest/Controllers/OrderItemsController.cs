@@ -6,30 +6,27 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SolforbTest.Models;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 
 namespace SolforbTest.Controllers
 {
-    public class HomeController : Controller
+    public class OrderItemsController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly IBaseService<OrderDTO> _service;
+        private readonly ILogger<OrderItemsController> _logger;
+        private readonly IBaseService<OrderItemDTO> _service;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _appEnvironment;
 
-        public HomeController(ILogger<HomeController> logger, IOrderService service, IWebHostEnvironment appEnvironment)
+        public OrderItemsController(ILogger<OrderItemsController> logger, IOrderItemService service, IWebHostEnvironment appEnvironment)
         {
             _logger = logger;
 
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.CreateMap<OrderModel, OrderDTO>();
-                cfg.CreateMap<OrderDTO, OrderModel>();
+                cfg.CreateMap<OrderItemModel, OrderItemDTO>();
+                cfg.CreateMap<OrderItemDTO, OrderItemModel>();
             });
 
             _mapper = config.CreateMapper();
@@ -39,44 +36,56 @@ namespace SolforbTest.Controllers
         }
 
         [HttpGet]
-        public ActionResult Index()
+        public ActionResult Index(int id)
         {
-            return View(GetAll(null));
+            ViewData["OrderId"] = id;
+            var options = new OrderItemFilterOption()
+            {
+                OrderIds = new List<int>()
+            };
+
+            options.OrderIds.Add(id);
+            return View(GetAll(options));
         }
 
         [HttpGet]
-        public IEnumerable<OrderModel> GetAll(OrderFilterOption options)
+        public IEnumerable<OrderItemModel> GetAll(OrderItemFilterOption options)
         {
-            var result = _mapper.Map<IEnumerable<OrderDTO>, IEnumerable<OrderModel>>(_service.GetAll());
+            var result = _mapper.Map<IEnumerable<OrderItemDTO>, IEnumerable<OrderItemModel>>(_service.GetAll());
 
             if (options != null)
-                result = result.ToList();
+                result = result
+                    .Where(x => options.OrderIds == null || options.OrderIds.Contains(x.OrderId))
+                    .ToList();
 
             return result;
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
         [HttpGet]
-        public IActionResult Add()
+        public IActionResult Add(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            ViewData["OrderId"] = id;
+
             return View();
         }
 
         [HttpPost]
-        public IActionResult Add(string number, DateTime date, int providerId)
+        public IActionResult Add(string name, decimal quantity, string unit, int orderId)
         {
-            _service.Add(new OrderDTO()
+            _service.Add(new OrderItemDTO()
             {
-                Number = number,
-                Date = date,
-                ProviderId = providerId,
+                Name = name,
+                Quantity = quantity,
+                Unit = unit,
+                OrderId = orderId
             });
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { id = orderId });
         }
 
         [HttpGet]
@@ -98,7 +107,7 @@ namespace SolforbTest.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(int id, string number, DateTime date, int providerId)
+        public IActionResult Edit(int id, string name, decimal quantity, string unit, int orderId)
         {
             var orderItem = _service.Find((int)id);
 
@@ -107,13 +116,13 @@ namespace SolforbTest.Controllers
                 return NotFound();
             }
 
-            orderItem.Number = number;
-            orderItem.Date = date;
-            orderItem.ProviderId = providerId;
+            orderItem.Name = name;
+            orderItem.Quantity = quantity;
+            orderItem.Unit = unit;
 
             _service.Update(orderItem);
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { id = orderId });
         }
 
         [HttpGet]
@@ -125,6 +134,7 @@ namespace SolforbTest.Controllers
             }
 
             var orderItem = _service.Find((int)id);
+            var orderId = orderItem.OrderId;
 
             if (orderItem == null)
             {
@@ -133,7 +143,7 @@ namespace SolforbTest.Controllers
 
             _service.Delete(orderItem);
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Index", new { id = orderId });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -143,10 +153,9 @@ namespace SolforbTest.Controllers
         }
     }
 
-    public class OrderFilterOption
+    public class OrderItemFilterOption
     {
         public List<int> Ids;
-        public List<Tuple<DateTime, DateTime>> Dates;
-        public List<int> ProviderIds;
+        public List<int> OrderIds;
     }
 }

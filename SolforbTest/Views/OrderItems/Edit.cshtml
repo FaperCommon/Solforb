@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = $"Edit {@Model.Name}";
+}
+<form method="post">
+    <label>Name:</label><br />
+    <input type="text" name="name" value=@Model.Name /><br /><br />
+
+    <label>Quantity:</label><br />
+    <input type="text" name="quantity" value=@Model.Quantity /><br /><br />
+
+    <label>Unit:</label><br />
+    <input type="text" name="unit" value=@Model.Unit /><br /><br />
+
+    <input type="hidden" value=@Model.OrderId name="orderId" />
+
+    <input type="submit" value="Submit" />
+</form>

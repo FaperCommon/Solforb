@@ -12,6 +12,7 @@ namespace BLL.Services
         protected new readonly IBaseRepository<D> _repository;
         public BaseService(IBaseRepository<D> repository) : base(repository)
         {
+            _repository = repository;
         }
 
         public virtual void Add(T item)

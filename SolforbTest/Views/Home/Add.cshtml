@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = $"Add to {ViewData["OrderId"]}";
+}
+
+<form method="post">
+    <label>Number:</label><br />
+    <input type="text" name="number" /><br /><br />
+
+    <label>Date:</label><br />
+    <input type="text" name="date" /><br /><br />
+
+    <label>ProviderId:</label><br />
+    <input type="text" name="providerId" /><br /><br />
+
+    <input type="submit" value="Submit" />
+</form>
