@@ -9,9 +9,7 @@ using SolforbTest.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 
 namespace SolforbTest.Controllers
 {
@@ -39,9 +37,35 @@ namespace SolforbTest.Controllers
         }
 
         [HttpGet]
-        public ActionResult Index()
+        public ActionResult Index(DateTime? startDate, DateTime? endDate, string number)
         {
-            return View(GetAll(null));
+            var options = new OrderFilterOption();
+
+            if (startDate != null)
+            {
+                options.StartDates = new List<DateTime>
+                {
+                    (DateTime)startDate
+                };
+            }
+
+            if (endDate != null)
+            {
+                options.EndDates = new List<DateTime>
+                {
+                    (DateTime)endDate
+                };
+            }
+
+            if (number != null)
+            {
+                options.Numbers = new List<string>
+                {
+                    number
+                };
+            }
+
+            return View(GetAll(options));
         }
 
         [HttpGet]
@@ -50,7 +74,11 @@ namespace SolforbTest.Controllers
             var result = _mapper.Map<IEnumerable<OrderDTO>, IEnumerable<OrderModel>>(_service.GetAll());
 
             if (options != null)
-                result = result.ToList();
+                result = result
+                    .Where(x => options.StartDates == null || options.StartDates.Any(y => y <= x.Date))
+                    .Where(x => options.EndDates == null || options.EndDates.Any(y => x.Date >= y))
+                    .Where(x => options.Numbers == null || options.Numbers.Contains(x.Number))
+                    .ToList();
 
             return result;
         }
@@ -146,7 +174,9 @@ namespace SolforbTest.Controllers
     public class OrderFilterOption
     {
         public List<int> Ids;
-        public List<Tuple<DateTime, DateTime>> Dates;
+        public List<DateTime> StartDates;
+        public List<DateTime> EndDates;
+        public List<string> Numbers;
         public List<int> ProviderIds;
     }
 }

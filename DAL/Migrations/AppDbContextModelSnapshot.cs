@@ -54,7 +54,7 @@ namespace DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,3)");
 
                     b.Property<string>("Unit")
                         .HasColumnType("nvarchar(max)");
